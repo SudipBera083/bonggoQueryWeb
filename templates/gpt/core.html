@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>Chat Application</title>
+    <style>
+        body {
+            background: linear-gradient(135deg, #3A3D40, #181818);
+            
+            font-family: "Roboto", sans-serif;
+            color: #333;
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .profile-section {
+            width: 250px;
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.8);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 4px 0 10px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .toggle-profile-btn {
+            display: none;
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: none;
+            border: none;
+            color: #f1c40f;
+            font-size: 1.5rem;
+            z-index: 10;
+        }
+
+        .profile-section h5 {
+            color: #f1c40f;
+            text-transform: uppercase;
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+        }
+
+        .profile-section a {
+            color: #f1c40f;
+            text-decoration: none;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: block;
+            transition: color 0.3s ease;
+        }
+
+        .profile-section a:hover {
+            color: #fff;
+        }
+
+        .chat-box {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            background-color: #e5ddd5;
+        }
+
+        .message-panel {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            background-color: #fafafa;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            scroll-behavior: smooth;
+        }
+
+        .input-group {
+            display: flex;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .form-control {
+            border-radius: 25px 0 0 25px;
+            padding: 10px 20px;
+            background-color: #fff;
+            color: #333;
+            max-height: 3rem;
+            overflow-y: auto;
+            resize: none;
+        }
+
+        /* Mobile-specific styles */
+        @media (max-width: 768px) {
+            .profile-section {
+                position: fixed;
+                /* Fixed position */
+                top: 0;
+                left: 0;
+                height: 100vh;
+                /* Full height */
+                width: 250px;
+                /* Ensure the width stays the same */
+                transform: translateX(-100%);
+                /* Hidden by default */
+                z-index: 5;
+                /* Ensure it stays above other elements */
+                transition: transform 0.3s ease-in-out;
+            }
+
+            .profile-section.active {
+                transform: translateX(0);
+                /* Show profile section */
+            }
+
+
+
+            .toggle-profile-btn {
+                display: block;
+                /* Ensure the button is visible */
+            }
+
+            .form-control {
+                max-height: calc(3 * 1.2em);
+                /* Approximate 3 lines height */
+            }
+        }
+
+
+
+
+
+
+
+        .btn-secondary.rounded-circle {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            margin-left: 5px;
+        }
+
+        .btn-primary {
+            border-radius: 25px;
+        }
+
+
+
+
+        /* Message bubbles like WhatsApp */
+        /*  */
+
+        /* User message bubble: Green */
+        /* Message bubbles with notch */
+        .message {
+            margin-bottom: 15px;
+            padding: 15px 25px;
+            border-radius: 20px;
+            max-width: 75%;
+            font-size: 1.05rem;
+            word-wrap: break-word;
+            display: inline-block;
+            position: relative;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+
+        /* User message bubble: Bright Green with Right-side Notch */
+        .message.user {
+            background-color: #28a745;
+            /* Vibrant green */
+            color: white;
+            align-self: flex-end;
+            box-shadow: 0 6px 15px rgba(40, 167, 69, 0.4);
+            transform-origin: bottom right;
+            position: relative;
+        }
+
+        .message.user::after {
+            content: "";
+            position: absolute;
+            top: 10px;
+            right: -10px;
+            /* Align notch on the right */
+            width: 0;
+            height: 0;
+            border-left: 10px solid #28a745;
+            /* Color matches the bubble */
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+        }
+
+        /* Bot message bubble: Bright Blue with Left-side Notch */
+        .message.bot {
+            background-color: #007bff;
+            /* Vibrant blue */
+            color: white;
+            align-self: flex-start;
+            box-shadow: 0 6px 15px rgba(0, 123, 255, 0.4);
+            transform-origin: bottom left;
+            position: relative;
+            display: flex;
+            align-items: center;
+            /* Align bot logo vertically */
+        }
+
+        .message.bot::after {
+            content: "";
+            position: absolute;
+            top: 10px;
+            left: -10px;
+            /* Align notch on the left */
+            width: 0;
+            height: 0;
+            border-right: 10px solid #007bff;
+            /* Color matches the bubble */
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+        }
+
+        /* Adding a logo for the bot */
+        .message.bot::before {
+            content: url('path_to_your_logo.png');
+            /* Replace with the actual path to the bot's logo */
+            margin-right: 10px;
+            width: 30px;
+            height: 30px;
+        }
+
+
+        /* Timestamp for messages */
+        .timestamp {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.7);
+            position: absolute;
+            bottom: -18px;
+            right: 15px;
+        }
+
+
+        @keyframes slideIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Timestamp for messages */
+        .timestamp {
+            font-size: 0.75rem;
+            color: #999;
+            position: absolute;
+            bottom: -18px;
+            right: 10px;
+        }
+
+        /* Custom scrollbar */
+        .message-panel::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .message-panel::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+
+        .message-panel::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        /* Smooth scrolling */
+        .message-panel {
+            scroll-behavior: smooth;
+        }
+
+        .btn-primary,
+        .btn-secondary {
+            transition: background-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        }
+
+        .btn-primary:hover {
+            background-color: #3578e5;
+            box-shadow: 0 0 10px rgba(63, 94, 251, 0.8);
+        }
+
+        .btn-secondary:hover {
+            background-color: #f39c12;
+            box-shadow: 0 0 10px rgba(241, 196, 15, 0.8);
+        }
+
+        
+
+        
+        .processing {
+            display: none;
+            font-size: 1.2rem;
+            color: #007bff;
+            margin-left: 10px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+
+
+        /* animation */
+        /* HTML: <div class="loader"></div> */
+        .loader {
+            width: 40px;
+            aspect-ratio: 1;
+            --c: linear-gradient(#700e0e 0 0);
+            --r1: radial-gradient(farthest-side at bottom, #000 93%, #0000);
+            --r2: radial-gradient(farthest-side at top, #000 93%, #0000);
+            background:
+                var(--c), var(--r1), var(--r2),
+                var(--c), var(--r1), var(--r2),
+                var(--c), var(--r1), var(--r2);
+            background-repeat: no-repeat;
+            animation: l2 1s infinite alternate;
+        }
+
+        @keyframes l2 {
+
+            0%,
+            25% {
+                background-size: 8px 0, 8px 4px, 8px 4px, 8px 0, 8px 4px, 8px 4px, 8px 0, 8px 4px, 8px 4px;
+                background-position: 0 50%, 0 calc(50% - 2px), 0 calc(50% + 2px), 50% 50%, 50% calc(50% - 2px), 50% calc(50% + 2px), 100% 50%, 100% calc(50% - 2px), 100% calc(50% + 2px);
+            }
+
+            50% {
+                background-size: 8px 100%, 8px 4px, 8px 4px, 8px 0, 8px 4px, 8px 4px, 8px 0, 8px 4px, 8px 4px;
+                background-position: 0 50%, 0 calc(0% - 2px), 0 calc(100% + 2px), 50% 50%, 50% calc(50% - 2px), 50% calc(50% + 2px), 100% 50%, 100% calc(50% - 2px), 100% calc(50% + 2px);
+            }
+
+            75% {
+                background-size: 8px 100%, 8px 4px, 8px 4px, 8px 100%, 8px 4px, 8px 4px, 8px 0, 8px 4px, 8px 4px;
+                background-position: 0 50%, 0 calc(0% - 2px), 0 calc(100% + 2px), 50% 50%, 50% calc(0% - 2px), 50% calc(100% + 2px), 100% 50%, 100% calc(50% - 2px), 100% calc(50% + 2px);
+            }
+
+            95%,
+            100% {
+                background-size: 8px 100%, 8px 4px, 8px 4px, 8px 100%, 8px 4px, 8px 4px, 8px 100%, 8px 4px, 8px 4px;
+                background-position: 0 50%, 0 calc(0% - 2px), 0 calc(100% + 2px), 50% 50%, 50% calc(0% - 2px), 50% calc(100% + 2px), 100% 50%, 100% calc(0% - 2px), 100% calc(100% + 2px);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <button class="toggle-profile-btn"><i class="fas fa-ellipsis-v"></i></button>
+
+    <div class="chat-container">
+        <!-- Profile Section -->
+        <div class="profile-section" id="profile-section">
+            <img src="{% static 'img/logo.png' %}" class="rounded mx-auto d-block" alt="..."
+                style="width: 200px;height: auto;">
+            <a href="{% url 'Home:logout' %}" id="logout">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-power" viewBox="0 0 16 16">
+                    <path d="M7.5 1v7h1V1z"/>
+                    <path d="M3 8.812a5 5 0 0 1 2.578-4.375l-.485-.874A6 6 0 1 0 11 3.616l-.501.865A5 5 0 1 1 3 8.812"/>
+                  </svg>
+                  &nbsp;
+                  Logout</a>
+            <a href="#" id="history">
+                
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-hourglass-split" viewBox="0 0 16 16">
+                    <path d="M2.5 15a.5.5 0 1 1 0-1h1v-1a4.5 4.5 0 0 1 2.557-4.06c.29-.139.443-.377.443-.59v-.7c0-.213-.154-.451-.443-.59A4.5 4.5 0 0 1 3.5 3V2h-1a.5.5 0 0 1 0-1h11a.5.5 0 0 1 0 1h-1v1a4.5 4.5 0 0 1-2.557 4.06c-.29.139-.443.377-.443.59v.7c0 .213.154.451.443.59A4.5 4.5 0 0 1 12.5 13v1h1a.5.5 0 0 1 0 1zm2-13v1c0 .537.12 1.045.337 1.5h6.326c.216-.455.337-.963.337-1.5V2zm3 6.35c0 .701-.478 1.236-1.011 1.492A3.5 3.5 0 0 0 4.5 13s.866-1.299 3-1.48zm1 0v3.17c2.134.181 3 1.48 3 1.48a3.5 3.5 0 0 0-1.989-3.158C8.978 9.586 8.5 9.052 8.5 8.351z"/>
+                  </svg>
+                  &nbsp;
+                  Chat History</a>
+            <a href="#" id="api">
+                
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-bar-right" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M6 8a.5.5 0 0 0 .5.5h5.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L12.293 7.5H6.5A.5.5 0 0 0 6 8m-2.5 7a.5.5 0 0 1-.5-.5v-13a.5.5 0 0 1 1 0v13a.5.5 0 0 1-.5.5"/>
+                  </svg>
+                  &nbsp;
+                  API</a>
+            <a href="#" id="feedback">
+                
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chat-right-text-fill" viewBox="0 0 16 16">
+                    <path d="M16 2a2 2 0 0 0-2-2H2a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h9.586a1 1 0 0 1 .707.293l2.853 2.853a.5.5 0 0 0 .854-.353zM3.5 3h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1 0-1m0 2.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1 0-1m0 2.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1 0-1"/>
+                  </svg>
+                  &nbsp;
+                  Feedback</a>
+
+
+                  <a href="#" id="share">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-share" viewBox="0 0 16 16">
+                        <path d="M13.5 1a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3M11 2.5a2.5 2.5 0 1 1 .603 1.628l-6.718 3.12a2.5 2.5 0 0 1 0 1.504l6.718 3.12a2.5 2.5 0 1 1-.488.876l-6.718-3.12a2.5 2.5 0 1 1 0-3.256l6.718-3.12A2.5 2.5 0 0 1 11 2.5m-8.5 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3m11 5.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3"/>
+
+                        
+                      </svg>
+                      &nbsp;
+                      Share
+                  </a>
+        </div>
+
+        <!-- Chat Section -->
+        <div class="chat-box">
+            <div id="response-container" class="message-panel" style="padding: 10px;">
+                <!-- Chat messages will be displayed here -->
+
+            </div>
+            <form id="chat-form">
+                {% csrf_token %}
+                <div class="input-group mb-3">
+                    <div class="processing loader" id="thinking" style="text-align: center;"></div>
+                    <textarea id="message" class="form-control" placeholder="Type your message here..." rows="1"
+                        required style="resize: none; overflow: hidden; min-height: 40px;
+                        border-radius: 15px;"></textarea>
+                    <div class="input-group-append">
+                        <button type="button" class="btn btn-secondary rounded-circle" id="mic-button">
+                            <i class="fas fa-microphone"></i>
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="send-button">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+
+
+    </div>
+
+    <script>
+        const chatForm = document.getElementById("chat-form");
+        const responseContainer = document.getElementById("response-container");
+        const messageInput = document.getElementById("message");
+        const micButton = document.getElementById("mic-button");
+        const profileSection = document.getElementById("profile-section");
+        const toggleProfileBtn = document.querySelector(".toggle-profile-btn");
+        const sendButton = document.getElementById("send-button");
+        const thinking = document.getElementById("thinking");
+
+
+        // Toggle profile section visibility
+        toggleProfileBtn.addEventListener("click", function () {
+            profileSection.classList.toggle("active");
+        });
+
+        // Handle chat form submission
+        chatForm.addEventListener("submit", function (event) {
+            event.preventDefault();
+            const message = messageInput.value.trim();
+
+            if (message) {
+                // Display the user's message
+                displayMessage(message, 'user');
+
+                // Hide the mic and send buttons, and show the thinking animation
+                toggleProcessingState(true);
+
+                // Send the message to the Django backend
+                fetch('/chat/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken'),  // Add CSRF token for Django
+                    },
+                    body: JSON.stringify({ message: message }),
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Display the bot's response
+                        if (data.response) {
+                            displayMessage(data.response, 'bot');
+                        } else {
+                            displayMessage("Error: " + data.error, 'bot');
+                        }
+
+                        // Clear the input and reset processing state
+                        messageInput.value = "";
+                        responseContainer.scrollTop = responseContainer.scrollHeight; // Auto-scroll to bottom
+                        toggleProcessingState(false); // Re-enable buttons and hide thinking
+                    })
+                    .catch(error => {
+                        console.error("Error:", error);
+                        toggleProcessingState(false); // Re-enable buttons on error
+                    });
+            }
+        });
+
+        // Function to show or hide the processing state
+        function toggleProcessingState(isProcessing) {
+            if (isProcessing) {
+                // Hide mic and send buttons
+                micButton.classList.add('hidden');
+                sendButton.classList.add('hidden');
+                messageInput.classList.add('hidden');
+
+                // Show the thinking animation
+                thinking.classList.remove('hidden');
+                thinking.style.display = 'block';
+            } else {
+                // Show mic and send buttons again
+                micButton.classList.remove('hidden');
+                sendButton.classList.remove('hidden');
+
+                messageInput.classList.remove('hidden');
+
+                // Hide the thinking animation
+                thinking.style.display = 'none';
+            }
+        }
+
+        // Function to get CSRF token (remains unchanged)
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Function to display messages in the chat
+        function displayMessage(text, sender) {
+            const messageElement = document.createElement("div");
+            messageElement.textContent = text;
+            messageElement.classList.add("message", sender, "chat-message");
+
+            // Add timestamp (optional)
+            const timestamp = document.createElement("span");
+            timestamp.classList.add("timestamp");
+            const now = new Date();
+            const timeString = now.getHours() + ':' + now.getMinutes().toString().padStart(2, '0');
+            timestamp.textContent = timeString;
+            messageElement.appendChild(timestamp);
+
+            responseContainer.appendChild(messageElement);
+        }
+
+        // Microphone functionality
+        micButton.addEventListener("click", function () {
+            if (!('webkitSpeechRecognition' in window)) {
+                alert("Sorry, your browser doesn't support speech recognition.");
+                return;
+            }
+
+            const recognition = new webkitSpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = "en-US";
+
+            recognition.onstart = function () {
+                console.log("Voice recognition started.");
+            };
+
+            recognition.onend = function () {
+                console.log("Voice recognition ended.");
+            };
+
+            recognition.onresult = function (event) {
+                const transcript = event.results[0][0].transcript;
+                messageInput.value = transcript;
+            };
+
+            recognition.start();
+        });
+    </script>
+</body>
+
+</html>
