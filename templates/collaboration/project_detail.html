@@ -1,0 +1,196 @@
+<!-- templates/projects/project_detail.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+    {%  load static  %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ project.title }}</title>
+    <style>
+        body {
+            background: linear-gradient(135deg, #3A3D40, #181818);
+            
+            font-family: "Roboto", sans-serif;
+            color: #333;
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #3A3D40, #181818);
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 2.5rem;
+        }
+
+        h2, h3 {
+            color: #007bff;
+        }
+
+        .btn, .submit-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn:hover, .submit-btn:hover {
+            background-color: #0056b3;
+        }
+
+        .snippet-list {
+            list-style: none;
+            padding: 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .snippet-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: transform 0.2s;
+        }
+
+        .snippet-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .snippet-card pre {
+            background: #e9ecef;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            max-height: 300px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .created-at {
+            font-size: 0.9rem;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        form {
+            margin-top: 20px;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            margin-bottom: 5px;
+            display: block;
+            color: #555;
+        }
+
+        .form-group textarea {
+            width: 100%;
+            height: 100px;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            resize: none;
+        }
+
+        .form-group button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .form-group button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <img src="{% static 'img/logo.png' %}" alt="" style="height: auto; width: 200px;">
+           
+        <h1 style="color: white;">{{ project.title }}</h1>
+        <p style="color: white;">{{ project.description }}</p>
+        <h2>Code Snippets</h2>
+        <ul class="snippet-list">
+            {% for snippet in snippets %}
+                <li class="snippet-card">
+                    <strong>{{ snippet.user.username }}</strong>
+                    <pre id="code-{{ forloop.counter }}" style="overflow-x: auto;">{{ snippet.code }}</pre>
+                    <button onclick="copyToClipboard('{{ snippet.code|escapejs }}')" class="btn">Copy Code</button>
+                    <p class="created-at">{{ snippet.created_at }}</p>
+                </li>
+            {% empty %}
+                <li>No code snippets available.</li>
+            {% endfor %}
+        </ul>
+        
+
+        <h3>Add Your Code Snippet</h3>
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group" style="padding: 10px;">
+                {{ code_form.as_p }}
+            </div>
+            <div class="form-group">
+                <button type="submit" class="submit-btn">Submit Snippet</button>
+            </div>
+        </form>
+
+        <footer class="text-center py-4" style="text-align: center; color: grey;">
+            <p>&copy; 2024 BonggoQuery. All Rights Reserved.</p>
+        </footer>
+    </div>
+
+    
+    
+
+</body>
+<script>
+    function copyToClipboard(code) {
+        const tempInput = document.createElement('textarea');
+        tempInput.value = code;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempInput);
+        alert('Copied to Clipboard!');  // You can customize this message
+    }
+</script>
+
+</html>

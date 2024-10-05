@@ -22,5 +22,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path("",include("home.urls"), name ="Launch" ),
     path("accounts/", include("accounts.urls"), name="Account"),
-    path("colaborate/", include("colaborate.urls"), name="Colaborate")
+    path("collaboration/", include("collaboration.urls"), name="Collaboration_page"),
 ]+ static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

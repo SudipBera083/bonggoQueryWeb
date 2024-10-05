@@ -1,0 +1,139 @@
+<!-- templates/projects/project_list.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+    {% load static  %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projects</title>
+    <style>
+        /* styles.css */
+
+        body {
+            background: linear-gradient(135deg, #3A3D40, #181818);
+            
+            font-family: "Roboto", sans-serif;
+            color: #333;
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+h1 {
+    color: #333;
+    font-size: 2.5rem;
+}
+
+.btn {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+.btn:hover {
+    background-color: #0056b3;
+}
+
+.project-list {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+.project-card {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin: 10px;
+    padding: 20px;
+    flex: 1 1 300px; /* Adjusts the size of the cards */
+    transition: transform 0.3s;
+}
+
+.project-card:hover {
+    transform: translateY(-5px);
+}
+
+.project-content h2 {
+    color: #007bff;
+    margin: 0 0 10px;
+}
+
+.project-content p {
+    color: #666;
+    margin: 5px 0;
+}
+
+.join-btn {
+    display: inline-block;
+    padding: 8px 15px;
+    background-color: #28a745;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+.join-btn:hover {
+    background-color: #218838;
+}
+
+    </style>
+   </head>
+<body>
+    <div class="container">
+        <header>
+            <img src="{% static 'img/logo.png' %}" alt="" style="height: auto; width: 200px;">
+            <h1 style="color: white;">Exciting Projects</h1>
+            {% if user.is_superuser %}
+                <a href="{% url 'Collaboration:create_project' %}" class="btn">Create a New Project</a>
+            {% endif %}
+        </header>
+        <ul class="project-list">
+            {% for project in projects %}
+                <li class="project-card">
+                    <div class="project-content">
+                        <h2>{{ project.title }}</h2>
+                        <p>{{ project.description }}</p>
+                        <p class="created-by">Created by: <strong>{{ project.created_by }}</strong></p>
+                        
+                        {% if project.id in user_collaborations %}
+                            <a class="status btn btn-success" 
+                            style="color: #e5ece7;"  href="{% url 'Collaboration:project_detail' project.id %}">Collaborate</a>
+                        {% else %}
+                            <a href="{% url 'Collaboration:join_project' project.id %}" class="join-btn">Join</a>
+                        {% endif %}
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+   
+
+    
+    
+
+</body>
+</html>

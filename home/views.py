@@ -27,6 +27,10 @@ from django.db.models import F
 from django.views.decorators.csrf import csrf_exempt
 import json
 from django.contrib.auth import logout
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .serializers import MyDataSerializer
 
 
 def send_verification_email(user, request):
@@ -148,3 +152,24 @@ def chat_view(request):
 
     return JsonResponse({"error": "Invalid request"}, status=400)
 
+
+
+# ------------------------   API -------------------------------------------
+
+class MyPostAPIView(APIView):
+    def post(self, request, *args, **kwargs):
+        serializer = MyDataSerializer(data=request.data)
+
+        if serializer.is_valid():
+            query = serializer.validated_data.get('query')
+            
+            
+            # Create a response dictionary
+            response_data = {
+                'Query': query,
+                'status': getResponse(query)
+            }
+            return Response(response_data, status=status.HTTP_200_OK)
+
+        # If data is not valid, return a 400 bad request with errors
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

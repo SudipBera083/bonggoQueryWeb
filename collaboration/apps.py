@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class ColaborateConfig(AppConfig):
+class CollaborationConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'colaborate'
+    name = 'collaboration'

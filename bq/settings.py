@@ -39,7 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'home',
     'accounts',
-    'colaborate',
+    'collaboration',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [

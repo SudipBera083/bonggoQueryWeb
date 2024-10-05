@@ -12,6 +12,7 @@ urlpatterns = [
     path('activate/<uidb64>/<token>/', views.activate_account, name='activate'),
     path('chat/', views.chat_view, name="chat"),
     path("logout/", views.custom_logout, name="logout"),
+    path('post-api/', views.MyPostAPIView.as_view(), name='post-api'),
 
 
 ]
